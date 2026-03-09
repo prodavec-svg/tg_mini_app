@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hypothesis | Биржевые гипотезы</title>
+    <style>
+        /* Все твои стили остались без изменений */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .app {
+            max-width: 390px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 36px;
+            box-shadow: 0 25px 45px -12px rgba(20, 30, 50, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 820px;
+            border: 1px solid #dee6f0;
+        }
+
+        .header {
+            padding: 24px 20px 20px;
+            background: linear-gradient(145deg, #1f2a3f, #152232);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .balance-block {
+            line-height: 1.2;
+        }
+        .balance-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #9aabcd;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+        .balance-value {
+            font-size: 38px;
+            font-weight: 700;
+            color: white;
+            line-height: 1.1;
+        }
+        .balance-value small {
+            font-size: 18px;
+            font-weight: 400;
+            color: #8d9fc7;
+            margin-left: 5px;
+        }
+        .refresh-btn {
+            background: #3f5577;
+            border: none;
+            color: white;
+            width: 52px;
+            height: 52px;
+            border-radius: 30px;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .refresh-btn:active {
+            background: #2c3b57;
+            transform: scale(0.97);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #a0b3cc #eef3f8;
+        }
+        .content::-webkit-scrollbar { width: 4px; }
+        .content::-webkit-scrollbar-track { background: #eef3f8; }
+        .content::-webkit-scrollbar-thumb { background: #a0b3cc; border-radius: 8px; }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #141f2f;
+            margin: 0 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-title span {
+            font-size: 13px;
+            font-weight: 500;
+            color: #4f658d;
+            background: #e9f0fa;
+            padding: 4px 14px;
+            border-radius: 30px;
+        }
+
+        .duration-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fcff;
+            padding: 12px 18px;
+            border-radius: 28px;
+            margin-bottom: 24px;
+            border: 1px solid #dce5f0;
+        }
+        .duration-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a2c44;
+        }
+        .duration-options {
+            display: flex;
+            gap: 8px;
+        }
+        .duration-option {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 1px solid #cdd9eb;
+            border-radius: 18px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #1a2c44;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .duration-option.active {
+            background: #1f2b3f;
+            border-color: #1f2b3f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(31, 43, 63, 0.15);
+        }
+
+        .asset-card {
+            background: white;
+            border-radius: 28px;
+            padding: 18px 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 6px 16px -8px rgba(0,20,40,0.08);
+            border: 1px solid #e6ecf5;
+            transition: all 0.2s;
+        }
+        .asset-card:hover {
+            border-color: #b2c6e0;
+        }
+
+        .asset-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .asset-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .asset-icon {
+            width: 48px;
+            height: 48px;
+            background: #edf4fd;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: #1e2b44;
+            border: 1px solid #cfddef;
+        }
+        .asset-details {
+            line-height: 1.3;
+        }
+        .asset-name {
+            font-weight: 700;
+            font-size: 17px;
+            color: #0a1622;
+        }
+        .asset-type {
+            font-size: 13px;
+            color: #5b6f90;
+            margin-top: 2px;
+        }
+        .asset-price {
+            font-weight: 700;
+            font-size: 18px;
+            color: #1a2b42;
+            background: #edf4fd;
+            padding: 6px 18px;
+            border-radius: 40px;
+            border: 1px solid #d7e2f0;
+        }
+
+        .direction-control {
+            display: flex;
+            gap: 10px;
+            margin: 0 0 18px;
+        }
+        .direction-btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 15px;
+            background: #f4f9ff;
+            color: #2a3e5a;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid #dde5f0;
+        }
+        .direction-btn.up.active {
+            background: #e2f0e8;
+            color: #146c43;
+            border-color: #a6cfb8;
+        }
+        .direction-btn.down.active {
+            background: #fee9e7;
+            color: #b13b2e;
+            border-color: #fbc5be;
+        }
+
+        .quantity-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+        .quantity-input {
+            width: 70px;
+            padding: 10px 8px;
+            border: 1px solid #cdd9eb;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 15px;
+            text-align: center;
+            background: #ffffff;
+        }
+        .quantity-input:focus {
+            outline: none;
+            border-color: #4c6ef5;
+            box-shadow: 0 0 0 3px rgba(76,110,245,0.1);
+        }
+        .quantity-slider {
+            flex: 1;
+            height: 5px;
+            -webkit-appearance: none;
+            background: #dbe2ed;
+            border-radius: 20px;
+        }
+        .quantity-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border: 2px solid #1f2b3f;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            margin-top: -8px;
+        }
+        .position-cost {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1f3a5c;
+            background: #edf4fd;
+            padding: 6px 14px;
+            border-radius: 40px;
+            white-space: nowrap;
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .total-section {
+            background: #f8fcff;
+            border-radius: 30px;
+            padding: 18px 20px;
+            margin: 24px 0 18px;
+            border: 1px solid #dce5f0;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+        .total-label {
+            font-size: 15px;
+            color: #304a6e;
+            font-weight: 500;
+        }
+        .total-value {
+            font-weight: 700;
+            font-size: 24px;
+            color: #0a1826;
+        }
+        .warning-text {
+            font-size: 14px;
+            color: #b64733;
+            font-weight: 500;
+            margin: 8px 0 10px;
+        }
+        .primary-btn {
+            background: #1f2b3f;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 18px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 10px 18px -6px rgba(31, 43, 63, 0.3);
+        }
+        .primary-btn:active {
+            transform: scale(0.98);
+            background: #2c3b57;
+        }
+        .primary-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            background: #8a9bb5;
+        }
+
+        .bottom-nav {
+            display: flex;
+            background: #ffffff;
+            border-top: 1px solid #e2ebf5;
+            padding: 10px 20px 14px;
+            justify-content: space-around;
+        }
+        .nav-item {
+            font-size: 15px;
+            font-weight: 600;
+            color: #7085a5;
+            padding: 8px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .nav-item.active {
+            background: #eef3fc;
+            color: #1f2b3f;
+        }
+
+        .portfolio-section {
+            margin-bottom: 24px;
+        }
+        .subtitle {
+            font-size: 14px;
+            font-weight: 600;
+            color: #3f5577;
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .positions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .position-item {
+            background: white;
+            border-radius: 24px;
+            padding: 16px;
+            border: 1px solid #e1eaf3;
+            border-left: 5px solid;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .position-name {
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .position-badge {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-active {
+            background: #e1eaf3;
+            color: #2b4c7c;
+        }
+        .badge-confirmed {
+            background: #dff0e6;
+            color: #1c6b3f;
+        }
+        .badge-rejected {
+            background: #fee1de;
+            color: #ac372b;
+        }
+        .position-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #3a4f6e;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            height: 4px;
+            background: #e3ebf5;
+            border-radius: 10px;
+            margin: 12px 0 8px;
+        }
+        .progress-fill {
+            height: 4px;
+            background: #1f2b3f;
+            border-radius: 10px;
+        }
+        .position-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        .result {
+            font-weight: 700;
+        }
+        .positive { color: #1a8047; }
+        .negative { color: #c43c2f; }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .history-item {
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e4ecf6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .history-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .history-asset {
+            font-weight: 700;
+            font-size: 16px;
+            color: #0f1f33;
+        }
+        .history-meta {
+            font-size: 13px;
+            color: #647b9b;
+        }
+        .history-status {
+            font-size: 13px;
+            font-weight: 500;
+            padding: 2px 10px;
+            border-radius: 30px;
+            display: inline-block;
+            width: fit-content;
+        }
+        .status-confirmed {
+            background: #e0f2e5;
+            color: #1a6e41;
+        }
+        .status-rejected {
+            background: #fee4e1;
+            color: #b13b2e;
+        }
+        .history-amount {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .page { display: none; }
+        .page.active-page { display: block; }
+
+        .refreshing {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <div class="balance-block">
+                <div class="balance-label">Баланс</div>
+                <div class="balance-value" id="balanceDisplay">5 000 <small>₽</small></div>
+            </div>
+            <button class="refresh-btn" id="refreshBtn" title="Обновить цены">⟳</button>
+        </div>
+
+        <div class="content" id="content">
+            <div class="page active-page" id="market">
+                <div class="duration-row">
+                    <span class="duration-label">Срок, дней</span>
+                    <div class="duration-options">
+                        <div class="duration-option active" data-days="1">1</div>
+                        <div class="duration-option" data-days="2">2</div>
+                        <div class="duration-option" data-days="3">3</div>
+                        <div class="duration-option" data-days="4">4</div>
+                        <div class="duration-option" data-days="5">5</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Акции <span>8</span></div>
+
+                <div class="asset-card" data-asset-id="SBER" data-price="267.5">
+                    <div class="asset-row">
+                        <div class="asset-info">
+                            <div class="asset-icon">SBER</div>
+                            <div class="asset-details">
+                                <div class="asset-name">Сбербанк</div>
+                                <div class="asset-type">Акция</div>
+                            </div>
+                        </div>
+                        <div class="asset-price">267,5 ₽</div>
+                    </div>
+                    <div class="direction-control">
+                        <div class="direction-btn up active">Вверх</div>
+                        <div class="direction-btn down">Вниз</div>
+                    </div>
+                    <div class="quantity-area">
+                        <input type="number" min="0" max="1000" value="0" class="quantity-input">
+                        <input type="range" min="0" max="1000" value="0" class="quantity-slider">
+                        <span class="position-cost">0,00 ₽</span>
+                    </div>
+                </div>
+
+                <div class="asset-card" data-asset-id="GAZP" data-price="162.3">
+                    <div class="asset-row">
+                        <div class="asset-info">
+                            <div class="asset-icon">GAZP</div>
+                            <div class="asset-details">
+                                <div class="asset-name">Газпром</div>
+                                <div class="asset-type">Акция</div>
+                            </div>
+                        </div>
+                        <div class="asset-price">162,3 ₽</div>
+                    </div>
+                    <div class="direction-control">
+                        <div class="direction-btn up active">Вверх</div>
+                        <div class="direction-btn down">Вниз</div>
+                    </div>
+                    <div class="quantity-area">
+                        <input type="number" min="0" max="1000" value="0" class="quantity-input">
+                        <input type="range" min="0" max="1000" value="0" class="quantity-slider">
+                        <span class="position-cost">0,00 ₽</span>
+                    </div>
+                </div>
+
+                <div class="asset-card" data-asset-id="YNDX" data-price="3680.5">
+                    <div class="asset-row">
+                        <div class="asset-info">
+                            <div class="asset-icon">YNDX</div>
+                            <div class="asset-details">
+                                <div class="asset-name">Яндекс</div>
+                                <div class="asset-type">Акция</div>
+                            </div>
+                        </div>
+                        <div class="asset-price">3680,5 ₽</div>
+                    </div>
+                    <div class="direction-control">
+                        <div class="direction-btn up active">Вверх</div>
+                        <div class="direction-btn down">Вниз</div>
+                    </div>
+                    <div class="quantity-area">
+                        <input type="number" min="0" max="1000" value="0" class="quantity-input">
+                        <input type="range" min="0" max="1000" value="0" class="quantity-slider">
+                        <span class="position-cost">0,00 ₽</span>
+                    </div>
+                </div>
+
+                <div class="asset-card" data-asset-id="LKOH" data-price="7120.0">
+                    <div class="asset-row">
+                        <div class="asset-info">
+                            <div class="asset-icon">LKOH</div>
+                            <div class="asset-details">
+                                <div class="asset-name">Лукойл</div>
+                                <div class="asset-type">Акция</div>
+                            </div>
+                        </div>
+                        <div class="asset-price">7120,0 ₽</div>
+                    </div>
+                    <div class="direction-control">
+                        <div class="direction-btn up active">Вверх</div>
+                        <div class="direction-btn down">Вниз</div>
+                    </div>
+                    <div class="quantity-area">
+                        <input type="number" min="0" max="1000" value="0" class="quantity-input">
+                        <input type="range" min="0" max="1000" value="0" class="quantity-slider">
+                        <span class="position-cost">0,00 ₽</span>
+                    </div>
+                </div>
+
+                <div class="asset-card" data-asset-id="GMKN" data-price="13500.0">
+                    <div class="asset-row">
+                        <div class="asset-info">
+                            <div class="asset-icon">GMKN</div>
+                            <div class="asset-details">
+                                <div class="asset-name">Норникель</div>
+                                <div class="asset-type">Акция</div>
+                            </div>
+                        </div>
+                        <div class="asset-price">13500,0 ₽</div>
+                    </div>
+                    <div class="direction-control">
+                        <div class="direction-btn up active">Вверх</div>
+                        <div class="direction-btn down">Вниз</div>
+                    </div>
+                    <div class="quantity-area">
+                        <input type="number" min="0" max="1000" value="0" class="quantity-input">
+                        <input type="range" min="0" max="1000" value="0" class="quantity-slider">
+                        <span class="position-cost">0,00 ₽</span>
+                    </div>
+                </div>
+
+                <div class="asset-card" data-asset-id="ROSN" data-price="540.0">
+                    <div class="asset-row">
+                        <div class="asset-info">
+                            <div class="asset-icon">ROSN</div>
+                            <div class="asset-details">
+                                <div class="asset-name">Роснефть</div>
+                                <div class="asset-type">Акция</div>
+                            </div>
+                        </div>
+                        <div class="asset-price">540,0 ₽</div>
+                    </div>
+                    <div class="direction-control">
+                        <div class="direction-btn up active">Вверх</div>
+                        <div class="direction-btn down">Вниз</div>
+                    </div>
+                    <div class="quantity-area">
+                        <input type="number" min="0" max="1000" value="0" class="quantity-input">
+                        <input type="range" min="0" max="1000" value="0" class="quantity-slider">
+                        <span class="position-cost">0,00 ₽</span>
+                    </div>
+                </div>
+
+                <div class="asset-card" data-asset-id="NVTK" data-price="1100.0">
+                    <div class="asset-row">
+                        <div class="asset-info">
+                            <div class="asset-icon">NVTK</div>
+                            <div class="asset-details">
+                                <div class="asset-name">НОВАТЭК</div>
+                                <div class="asset-type">Акция</div>
+                            </div>
+                        </div>
+                        <div class="asset-price">1100,0 ₽</div>
+                    </div>
+                    <div class="direction-control">
+                        <div class="direction-btn up active">Вверх</div>
+                        <div class="direction-btn down">Вниз</div>
+                    </div>
+                    <div class="quantity-area">
+                        <input type="number" min="0" max="1000" value="0" class="quantity-input">
+                        <input type="range" min="0" max="1000" value="0" class="quantity-slider">
+                        <span class="position-cost">0,00 ₽</span>
+                    </div>
+                </div>
+
+                <div class="asset-card" data-asset-id="TATN" data-price="658.2">
+                    <div class="asset-row">
+                        <div class="asset-info">
+                            <div class="asset-icon">TATN</div>
+                            <div class="asset-details">
+                                <div class="asset-name">Татнефть</div>
+                                <div class="asset-type">Акция</div>
+                            </div>
+                        </div>
+                        <div class="asset-price">658,2 ₽</div>
+                    </div>
+                    <div class="direction-control">
+                        <div class="direction-btn up active">Вверх</div>
+                        <div class="direction-btn down">Вниз</div>
+                    </div>
+                    <div class="quantity-area">
+                        <input type="number" min="0" max="1000" value="0" class="quantity-input">
+                        <input type="range" min="0" max="1000" value="0" class="quantity-slider">
+                        <span class="position-cost">0,00 ₽</span>
+                    </div>
+                </div>
+
+                <div class="total-section">
+                    <div class="total-row">
+                        <span class="total-label">Сумма позиций</span>
+                        <span class="total-value" id="totalSum">0,00 ₽</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="total-label">Остаток баланса</span>
+                        <span class="total-value" id="remainingBalance">5 000,00 ₽</span>
+                    </div>
+                    <div id="warningMessage" class="warning-text"></div>
+                    <button class="primary-btn" id="applyBtn">Применить гипотезу</button>
+                </div>
+            </div>
+
+            <div class="page" id="portfolio">
+                <div class="portfolio-section">
+                    <div class="subtitle">Активные гипотезы</div>
+                    <div id="active-positions" class="positions-list"></div>
+                </div>
+                <div class="portfolio-section">
+                    <div class="subtitle">Завершённые</div>
+                    <div id="completed-positions" class="positions-list"></div>
+                </div>
+            </div>
+
+            <div class="page" id="history">
+                <div id="history-list" class="history-list"></div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" data-page="market">Рынок</div>
+            <div class="nav-item" data-page="portfolio">Портфель</div>
+            <div class="nav-item" data-page="history">История</div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
