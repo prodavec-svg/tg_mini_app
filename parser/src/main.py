@@ -92,11 +92,5 @@ def job():
 
 
 if __name__ == "__main__":
-    logger.info("Парсер запущен. Первый запуск сейчас, далее каждый час.")
-    job()  # запуск сразу при старте
-
-    schedule.every(1).hours.do(job)
-
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
+    logger.info("Парсер запущен")
+    job()
