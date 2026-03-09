@@ -1,0 +1,13 @@
+{
+  "name": "tg-hypothesis-app",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "parcel public/index.html",
+    "build": "parcel build public/index.html"
+  },
+  "devDependencies": {
+    "@twa-dev/sdk": "^8.0.2",
+    "parcel": "^2.8.3",
+    "typescript": "^5.0.0"
+  }
+}
