@@ -1,10 +1,10 @@
 import os
+import time
 import logging
-from datetime import datetime, timedelta
-from typing import Protocol, runtime_checkable
-
 import requests
 import psycopg2
+import schedule
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,172 +15,82 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Список акций для парсинга
+TICKERS = ["SBER", "GAZP", "YNDX", "LKOH", "GMKN", "ROSN", "NVTK", "TATN"]
 
 
-class PriceRecord:
-    """Модель одной записи о цене акции."""
-
-    def __init__(self, ticker: str, price: float, timestamp: datetime):
-        self.ticker = ticker
-        self.price = price
-        self.timestamp = timestamp
-
-    def __repr__(self) -> str:
-        return f"PriceRecord({self.ticker}, {self.price}, {self.timestamp})"
-
-
-
-
-@runtime_checkable
-class PriceFetcher(Protocol):
-    """Отвечает только за получение цены одного тикера."""
-
-    def fetch(self, ticker: str) -> float | None: ...
-
-
-@runtime_checkable
-class PriceRepository(Protocol):
-    """Отвечает только за хранение записей о ценах."""
-
-    def save_many(self, records: list[PriceRecord]) -> None: ...
-    def delete_older_than(self, cutoff: datetime) -> int: ...
-
-
-
-class MoexPriceFetcher:
-    """Реализация PriceFetcher для Московской биржи (MOEX ISS)."""
-
-    _BASE_URL = (
-        "https://iss.moex.com/iss/engines/stock/markets/shares/"
-        "boards/TQBR/securities/{ticker}.json"
-        "?iss.meta=off&iss.only=marketdata&marketdata.columns=SECID,LAST"
+def get_price(ticker: str) -> float | None:
+    """Получить текущую цену акции с MOEX ISS"""
+    url = (
+        f"https://iss.moex.com/iss/engines/stock/markets/shares/"
+        f"boards/TQBR/securities/{ticker}.json"
+        f"?iss.meta=off&iss.only=marketdata&marketdata.columns=SECID,LAST"
     )
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
 
-    def __init__(self, timeout: int = 10):
-        self._timeout = timeout
+        rows = data.get("marketdata", {}).get("data", [])
+        if rows and rows[0][1] is not None:
+            return float(rows[0][1])
+        else:
+            logger.warning(f"{ticker}: цена недоступна (торги закрыты?)")
+            return None
 
-    def fetch(self, ticker: str) -> float | None:
-        url = self._BASE_URL.format(ticker=ticker)
-        try:
-            response = requests.get(url, timeout=self._timeout)
-            response.raise_for_status()
-            rows = response.json().get("marketdata", {}).get("data", [])
-            if rows and rows[0][1] is not None:
-                return float(rows[0][1])
-            logger.warning("%s: цена недоступна (торги закрыты?)", ticker)
-        except requests.RequestException as exc:
-            logger.error("%s: ошибка запроса — %s", ticker, exc)
+    except requests.RequestException as e:
+        logger.error(f"{ticker}: ошибка запроса — {e}")
         return None
 
 
-class PostgresPriceRepository:
-    """Реализация PriceRepository поверх PostgreSQL (psycopg2)."""
+def save_prices(prices: list[dict]):
+    """Сохранить список цен в PostgreSQL"""
+    if not prices:
+        logger.info("Нет данных для сохранения")
+        return
 
-    def __init__(self, dsn: str):
-        self._dsn = dsn
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
 
+        cur.executemany(
+            "INSERT INTO prices (ticker, price, timestamp) VALUES (%s, %s, %s)",
+            [(p["ticker"], p["price"], p["timestamp"]) for p in prices]
+        )
+        conn.commit()
+        logger.info(f"Сохранено {len(prices)} записей в БД")
 
-    def _connect(self):
-        return psycopg2.connect(self._dsn)
+    except Exception as e:
+        logger.error(f"Ошибка сохранения в БД: {e}")
 
-
-    def save_many(self, records: list[PriceRecord]) -> None:
-        if not records:
-            logger.info("Нет данных для сохранения")
-            return
-
-        conn = None
-        try:
-            conn = self._connect()
-            with conn.cursor() as cur:
-                cur.executemany(
-                    "INSERT INTO prices (ticker, price, timestamp) VALUES (%s, %s, %s)",
-                    [(r.ticker, r.price, r.timestamp) for r in records],
-                )
-            conn.commit()
-            logger.info("Сохранено %d записей в БД", len(records))
-        except Exception as exc:
-            logger.error("Ошибка сохранения в БД: %s", exc)
-        finally:
-            if conn:
-                conn.close()
-
-    def delete_older_than(self, cutoff: datetime) -> int:
-        """Удалить все записи старше cutoff. Возвращает количество удалённых строк."""
-        conn = None
-        try:
-            conn = self._connect()
-            with conn.cursor() as cur:
-                cur.execute(
-                    "DELETE FROM prices WHERE timestamp < %s",
-                    (cutoff,),
-                )
-                deleted = cur.rowcount
-            conn.commit()
-            logger.info("Удалено %d устаревших записей (старше %s)", deleted, cutoff)
-            return deleted
-        except Exception as exc:
-            logger.error("Ошибка удаления устаревших записей: %s", exc)
-            return 0
-        finally:
-            if conn:
-                conn.close()
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
 
 
+def job():
+    """Основная задача: получить цены и сохранить в БД"""
+    logger.info("Запуск парсинга...")
+    timestamp = datetime.utcnow()
+    prices = []
 
-class PriceCollector:
-    """
-    Собирает цены по списку тикеров и сохраняет их через репозиторий.
-    Зависит от абстракций, а не от конкретных классов (DIP).
-    """
+    for ticker in TICKERS:
+        price = get_price(ticker)
+        if price is not None:
+            prices.append({
+                "ticker": ticker,
+                "price": price,
+                "timestamp": timestamp
+            })
+            logger.info(f"{ticker}: {price} ₽")
 
-    def __init__(self, fetcher: PriceFetcher, repository: PriceRepository):
-        self._fetcher = fetcher
-        self._repository = repository
-
-    def collect(self, tickers: list[str]) -> None:
-        timestamp = datetime.utcnow()
-        records: list[PriceRecord] = []
-
-        for ticker in tickers:
-            price = self._fetcher.fetch(ticker)
-            if price is not None:
-                records.append(PriceRecord(ticker, price, timestamp))
-                logger.info("%s: %.2f ₽", ticker, price)
-
-        self._repository.save_many(records)
-
-
-class OldRecordsCleaner:
-    """Отвечает только за очистку устаревших записей (SRP)."""
-
-    def __init__(self, repository: PriceRepository, retention_days: int):
-        self._repository = repository
-        self._retention_days = retention_days
-
-    def clean(self) -> int:
-        cutoff = datetime.utcnow() - timedelta(days=self._retention_days)
-        return self._repository.delete_older_than(cutoff)
-
-
-TICKERS = ["SBER", "GAZP", "YNDX", "LKOH", "GMKN", "ROSN", "NVTK", "TATN"]
-RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "30"))
+    save_prices(prices)
+    logger.info("Парсинг завершён\n")
 
 
 if __name__ == "__main__":
-    dsn = os.environ["DATABASE_URL"]
-
-    fetcher    = MoexPriceFetcher(timeout=10)
-    repository = PostgresPriceRepository(dsn=dsn)
-    collector  = PriceCollector(fetcher, repository)
-    cleaner    = OldRecordsCleaner(repository, retention_days=RETENTION_DAYS)
-
-    logger.info("=== Запуск парсера ===")
-
-    logger.info("--- Сбор цен ---")
-    collector.collect(TICKERS)
-
-    logger.info("--- Очистка устаревших записей (старше %d дн.) ---", RETENTION_DAYS)
-    cleaner.clean()
-
-    logger.info("=== Готово ===")
+    logger.info("Парсер запущен")
+    job()
