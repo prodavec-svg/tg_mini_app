@@ -1,41 +1,11 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.routers import assets, user, hypotheses, prices
 
-app = FastAPI(
-    title="Trading Simulator API",
-    description="Telegram Mini App Trading Simulator",
-    version="1.0.0"
-)
-
-# Настройка CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # На этапе разработки разрешаем все источники
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Подключение роутеров
-app.include_router(assets.router)
-app.include_router(user.router)
-app.include_router(hypotheses.router)
-app.include_router(prices.router)
+app = FastAPI(title="My Awesome API")
 
 @app.get("/")
-async def root():
-    return {
-        "message": "Trading Simulator API",
-        "version": "1.0.0",
-        "endpoints": [
-            "/api/assets",
-            "/api/user",
-            "/api/hypotheses",
-            "/api/prices/refresh"
-        ]
-    }
+def root():
+    return {"message": "Hello from Backend!"}
 
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+def health():
+    return {"status": "ok"}
