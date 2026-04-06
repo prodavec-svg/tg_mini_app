@@ -1,6 +1,6 @@
 import { Asset, Position, CompletedPosition } from './types';
 
-const API_BASE = 'https://your-backend.com/api'; // Замени на реальный адрес
+const API_BASE = 'http://localhost:8000/api'; // Замени на реальный адрес
 
 // Вспомогательная функция для добавления заголовка авторизации (Telegram)
 function getHeaders(): HeadersInit {
