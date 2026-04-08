@@ -19,3 +19,4 @@ Thumbs.db
 npm-debug.log*
 __pycache__/
 *.pyc
+frontend/.parcel-cache/
