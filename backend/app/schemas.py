@@ -14,21 +14,33 @@ class ActivePosition(BaseModel):
     """Схема активной позиции"""
     id: int
     hypothesisId: int
+    assetId: str
+    assetName: str
     ticker: str
     direction: str
     quantity: int
     duration: int
-    priceOpen: float
+    openPrice: float   # фронт ждёт openPrice
+    openTime: float
+    endTime: float
 
 class CompletedPosition(BaseModel):
     """Схема завершенной позиции"""
     id: int
+    hypothesisId: int
+    assetId: str
+    assetName: str
     ticker: str
     direction: str
     quantity: int
-    priceOpen: float
-    priceClose: float
+    duration: int
+    openPrice: float   # фронт ждёт openPrice
+    closePrice: float  # фронт ждёт closePrice
+    openTime: float
+    endTime: float
+    closeTime: float
     result: float
+    status: str        # 'confirmed' | 'rejected'
 
 class UserResponse(BaseModel):
     """Схема пользователя"""

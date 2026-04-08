@@ -15,7 +15,6 @@ async def get_user(
 ):
     """Получение данных пользователя"""
 
-    # Получаем активные гипотезы
     active_hypotheses = db.query(models.Hypothesis).filter(
         and_(
             models.Hypothesis.user_id == current_user.id,
@@ -23,7 +22,6 @@ async def get_user(
         )
     ).all()
 
-    # Получаем завершенные гипотезы
     completed_hypotheses = db.query(models.Hypothesis).filter(
         and_(
             models.Hypothesis.user_id == current_user.id,
@@ -31,7 +29,6 @@ async def get_user(
         )
     ).all()
 
-    # Формируем активные позиции
     active_positions = []
     for hypothesis in active_hypotheses:
         positions = db.query(models.Position).filter(
@@ -39,17 +36,23 @@ async def get_user(
         ).all()
 
         for pos in positions:
+            open_ts = hypothesis.created_at.timestamp() * 1000
+            end_ts = open_ts + pos.duration * 24 * 60 * 60 * 1000
+
             active_positions.append({
                 "id": pos.id,
                 "hypothesisId": hypothesis.id,
+                "assetId": pos.ticker,
+                "assetName": pos.ticker,      # ticker как имя, т.к. отдельного поля name нет
                 "ticker": pos.ticker,
                 "direction": pos.direction,
                 "quantity": pos.quantity,
                 "duration": pos.duration,
-                "priceOpen": float(pos.price_open)
+                "openPrice": float(pos.price_open),  # фронт ждёт openPrice
+                "openTime": open_ts,
+                "endTime": end_ts,
             })
 
-    # Формируем завершенные позиции
     completed_positions = []
     for hypothesis in completed_hypotheses:
         positions = db.query(models.Position).filter(
@@ -57,16 +60,30 @@ async def get_user(
         ).all()
 
         for pos in positions:
-            if pos.price_close is not None and pos.result is not None:
-                completed_positions.append({
-                    "id": pos.id,
-                    "ticker": pos.ticker,
-                    "direction": pos.direction,
-                    "quantity": pos.quantity,
-                    "priceOpen": float(pos.price_open),
-                    "priceClose": float(pos.price_close),
-                    "result": float(pos.result)
-                })
+            if pos.price_close is None or pos.result is None:
+                continue
+
+            open_ts = hypothesis.created_at.timestamp() * 1000
+            end_ts = open_ts + pos.duration * 24 * 60 * 60 * 1000
+            close_ts = hypothesis.closed_at.timestamp() * 1000 if hypothesis.closed_at else end_ts
+
+            completed_positions.append({
+                "id": pos.id,
+                "hypothesisId": hypothesis.id,
+                "assetId": pos.ticker,
+                "assetName": pos.ticker,
+                "ticker": pos.ticker,
+                "direction": pos.direction,
+                "quantity": pos.quantity,
+                "duration": pos.duration,
+                "openPrice": float(pos.price_open),
+                "closePrice": float(pos.price_close),
+                "openTime": open_ts,
+                "endTime": end_ts,
+                "closeTime": close_ts,
+                "result": float(pos.result),
+                "status": "confirmed" if float(pos.result) >= 0 else "rejected",
+            })
 
     return {
         "balance": float(current_user.balance),

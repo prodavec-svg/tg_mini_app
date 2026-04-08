@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, event, NullPool
+from sqlalchemy import create_engine, event, NullPool, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from app.config import settings
@@ -28,4 +28,4 @@ def get_db():
 
 def set_user_id_for_rls(db: Session, user_id: int):
     """Установка user_id для RLS"""
-    db.execute(f"SET LOCAL app.user_id = '{user_id}'")
+    db.execute(text(f"SET LOCAL app.user_id = '{user_id}'"))
