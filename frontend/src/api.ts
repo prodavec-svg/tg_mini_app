@@ -1,6 +1,7 @@
 import { Asset, Position, CompletedPosition } from './types';
 
-const API_BASE = process.env.VITE_API_URL ?? 'http://localhost:8000/api';
+// const API_BASE = process.env.VITE_API_URL ?? 'http://localhost:8000/api';
+const API_BASE = 'https://tg-mini-app-ggy5.onrender.com/api';
 
 // Вспомогательная функция для добавления заголовка авторизации (Telegram)
 function getHeaders(): HeadersInit {
