@@ -1,6 +1,6 @@
 import { Asset, Position, CompletedPosition } from './types';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api';
+const API_BASE = process.env.VITE_API_URL ?? 'http://localhost:8000/api';
 
 // Вспомогательная функция для добавления заголовка авторизации (Telegram)
 function getHeaders(): HeadersInit {
@@ -11,13 +11,13 @@ function getHeaders(): HeadersInit {
 }
 
 export async function fetchAssets(): Promise<Asset[]> {
-  const response = await fetch(`${API_BASE}/assets`, { headers: getHeaders() });
+  const response = await fetch(`${API_BASE}/assets/`, { headers: getHeaders() });
   if (!response.ok) throw new Error('Ошибка загрузки активов');
   return response.json();
 }
 
 export async function fetchUserData(): Promise<{ balance: number; active: Position[]; completed: CompletedPosition[] }> {
-  const response = await fetch(`${API_BASE}/user`, { headers: getHeaders() });
+  const response = await fetch(`${API_BASE}/user/`, { headers: getHeaders() });
   if (!response.ok) throw new Error('Ошибка загрузки данных пользователя');
   return response.json();
 }
@@ -25,7 +25,7 @@ export async function fetchUserData(): Promise<{ balance: number; active: Positi
 export async function createHypothesis(
   positions: { assetId: string; direction: 'up' | 'down'; quantity: number; duration: number }[]
 ): Promise<{ newBalance: number }> {
-  const response = await fetch(`${API_BASE}/hypotheses`, {
+  const response = await fetch(`${API_BASE}/hypotheses/`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ positions }),
