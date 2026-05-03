@@ -35,7 +35,7 @@ export async function createHypothesis(
 }
 
 export async function refreshPrices(): Promise<Asset[]> {
-  const response = await fetch(`${API_BASE}/prices/refresh/`, {
+  const response = await fetch(`${API_BASE}/prices/refresh`, {
     method: 'POST',
     headers: getHeaders(),
   });
