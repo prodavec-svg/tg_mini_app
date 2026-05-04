@@ -11,13 +11,13 @@ async def get_current_user(
     """Получение текущего пользователя по Telegram user_id"""
 
     # ===== ТОЛЬКО ДЛЯ РАЗРАБОТКИ — закомментировать перед продакшеном =====
-    if x_telegram_user_id is None:
-        x_telegram_user_id = int(os.getenv("DEV_USER_ID", "123456789"))
+    # if x_telegram_user_id is None:
+    #     x_telegram_user_id = int(os.getenv("DEV_USER_ID", "123456789"))
     # ===== КОНЕЦ DEV-БЛОКА =====
 
     # ===== ПРОДАКШЕН — раскомментировать перед деплоем =====
-    # if x_telegram_user_id is None:
-    #     raise HTTPException(status_code=401, detail="X-Telegram-User-Id header is required")
+    if x_telegram_user_id is None:
+        raise HTTPException(status_code=401, detail="X-Telegram-User-Id header is required")
     # =====
 
     set_user_id_for_rls(db, x_telegram_user_id)
