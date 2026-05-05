@@ -1,6 +1,7 @@
 import { Asset, Position, CompletedPosition } from './types';
+import WebApp from '@twa-dev/sdk';
 
-// const API_BASE = process.env.VITE_API_URL ?? 'http://localhost:8000/api';
+// const API_BASE = process.env.VITE_API_URL ?? 'http://localhost:8000/api'; 
 const API_BASE = 'https://tg-mini-app-ggy5.onrender.com/api';
 
 // Вспомогательная функция для добавления заголовка авторизации (Telegram)
@@ -8,6 +9,12 @@ function getHeaders(): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
+
+  const userId = WebApp.initDataUnsafe?.user?.id;
+  if (userId) {
+    headers['X-Telegram-User-Id'] = String(userId);
+  }
+
   return headers;
 }
 
