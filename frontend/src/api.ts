@@ -11,6 +11,11 @@ function getHeaders(): HeadersInit {
   };
 
   const userId = WebApp.initDataUnsafe?.user?.id;
+  
+  console.log('userId:', userId);
+  console.log('initData:', WebApp.initData);
+  console.log('initDataUnsafe:', JSON.stringify(WebApp.initDataUnsafe));
+
   if (userId) {
     headers['X-Telegram-User-Id'] = String(userId);
   }
