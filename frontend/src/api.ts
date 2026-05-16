@@ -7,7 +7,8 @@ function getHeaders(): HeadersInit {
     'Content-Type': 'application/json',
   };
 
-  const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+  const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+  const userId = tgUserId || 123456789;
   console.log('userId:', userId);
 
   if (userId) {
