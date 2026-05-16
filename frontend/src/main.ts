@@ -1,9 +1,11 @@
+import WebApp from '@twa-dev/sdk';
 import { store } from './store';
 import * as ui from './ui';
 import { formatMoney, getSelectedDuration } from './utils';
 import { refreshAllData } from './ui';
 
-window.Telegram?.WebApp?.ready();
+WebApp.ready();
+WebApp.expand(); // Раскрываем мини-приложение на максимум (опционально)
 
 const marketCards = document.querySelectorAll('#market .asset-card');
 const durationOptions = document.querySelectorAll('.duration-option');

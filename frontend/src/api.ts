@@ -1,4 +1,5 @@
 import { Asset, Position, CompletedPosition } from './types';
+import WebApp from '@twa-dev/sdk';
 
 const API_BASE = 'https://tg-mini-app-ggy5.onrender.com/api';
 
@@ -7,9 +8,8 @@ function getHeaders(): HeadersInit {
     'Content-Type': 'application/json',
   };
 
-  const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-  const userId = tgUserId || 123456789;
-  console.log('userId:', userId);
+  // Берем ID пользователя из SDK. Если мы не в Telegram — подставляем тестовый ID
+  const userId = WebApp.initDataUnsafe?.user?.id || 123456789;
 
   if (userId) {
     headers['X-Telegram-User-Id'] = String(userId);
@@ -45,7 +45,7 @@ export async function createHypothesis(
 export async function refreshPrices(): Promise<Asset[]> {
   const response = await fetch(`${API_BASE}/prices/refresh`, {
     method: 'POST',
-    headers: getHeaders(),
+    headers: getHeaders()
   });
   if (!response.ok) throw new Error('Ошибка обновления цен');
   return response.json();
