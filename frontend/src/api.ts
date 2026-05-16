@@ -1,5 +1,5 @@
 import { Asset, Position, CompletedPosition } from './types';
-import WebApp from '@twa-dev/sdk';
+// import WebApp from '@twa-dev/sdk';
 
 // const API_BASE = process.env.VITE_API_URL ?? 'http://localhost:8000/api'; 
 const API_BASE = 'https://tg-mini-app-ggy5.onrender.com/api';
@@ -9,12 +9,9 @@ function getHeaders(): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
-
-  const userId = WebApp.initDataUnsafe?.user?.id;
   
+  const userId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
   console.log('userId:', userId);
-  console.log('initData:', WebApp.initData);
-  console.log('initDataUnsafe:', JSON.stringify(WebApp.initDataUnsafe));
 
   if (userId) {
     headers['X-Telegram-User-Id'] = String(userId);
