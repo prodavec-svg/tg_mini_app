@@ -14,7 +14,7 @@ function getHeaders(): HeadersInit {
   console.log('Данные Telegram:', WebApp.initDataUnsafe);
   console.log('Отправляемый ID:', userId);
 
-  WebApp.showAlert(`Отправляем запрос с ID: ${userId}`);
+  // WebApp.showAlert(`Отправляем запрос с ID: ${userId}`);
 
   if (userId) {
     headers['X-Telegram-User-Id'] = String(userId);
