@@ -7,6 +7,7 @@ import { refreshAllData } from './ui';
 WebApp.ready();
 WebApp.expand(); // Раскрываем мини-приложение на максимум (опционально)
 
+
 const marketCards = document.querySelectorAll('#market .asset-card');
 const durationOptions = document.querySelectorAll('.duration-option');
 const navItems = document.querySelectorAll('.nav-item');

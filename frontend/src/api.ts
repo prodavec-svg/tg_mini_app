@@ -11,6 +11,8 @@ function getHeaders(): HeadersInit {
   // Берем ID пользователя из SDK. Если мы не в Telegram — подставляем тестовый ID
   const userId = WebApp.initDataUnsafe?.user?.id || 123456789;
 
+  WebApp.showAlert(`Отправляем запрос с ID: ${userId}`);
+
   if (userId) {
     headers['X-Telegram-User-Id'] = String(userId);
   }
