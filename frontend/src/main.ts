@@ -1,3 +1,6 @@
+import eruda from 'eruda';
+eruda.init();
+
 import { store } from './store';
 import * as ui from './ui';
 import { formatMoney, getSelectedDuration } from './utils';
