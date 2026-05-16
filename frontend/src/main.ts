@@ -2,9 +2,8 @@ import { store } from './store';
 import * as ui from './ui';
 import { formatMoney, getSelectedDuration } from './utils';
 import { refreshAllData } from './ui';
-import WebApp from '@twa-dev/sdk'; 
 
-WebApp.ready();
+window.Telegram?.WebApp?.ready();
 
 const marketCards = document.querySelectorAll('#market .asset-card');
 const durationOptions = document.querySelectorAll('.duration-option');
