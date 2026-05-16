@@ -9,6 +9,7 @@ router = APIRouter(prefix="/api/user", tags=["user"])
 
 
 @router.get("", response_model=schemas.UserResponse)
+@router.get("/", response_model=schemas.UserResponse)
 async def get_user(
         current_user: models.User = Depends(get_current_user),
         db: Session = Depends(get_db)
