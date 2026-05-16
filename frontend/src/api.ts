@@ -10,7 +10,7 @@ function getHeaders(): HeadersInit {
     'Content-Type': 'application/json',
   };
 
-  const userId = WebApp.initDataUnsafe?.user?.id;
+  const userId = WebApp.initDataUnsafe?.user?.id || 123456789;
   
   console.log('userId:', userId);
   console.log('initData:', WebApp.initData);
