@@ -7,7 +7,10 @@
   },
   "devDependencies": {
     "@twa-dev/sdk": "^8.0.2",
+    "buffer": "^6.0.3",
+    "eruda": "^3.4.3",
     "parcel": "^2.8.3",
+    "process": "^0.11.10",
     "typescript": "^5.0.0"
   }
 }

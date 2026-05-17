@@ -8,7 +8,7 @@ from app.config import settings
 router = APIRouter(prefix="/api/assets", tags=["assets"])
 
 
-@router.get("/", response_model=list[schemas.AssetResponse])
+@router.get("", response_model=list[schemas.AssetResponse])
 async def get_assets(db: Session = Depends(get_db)):
     """Получение списка акций с актуальными ценами"""
     assets = []

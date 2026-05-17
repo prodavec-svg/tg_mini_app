@@ -9,7 +9,7 @@ from app.dependencies import get_current_user
 router = APIRouter(prefix="/api/hypotheses", tags=["hypotheses"])
 
 
-@router.post("/", response_model=schemas.HypothesisResponse)
+@router.post("", response_model=schemas.HypothesisResponse)
 async def create_hypothesis(
         request: schemas.HypothesisRequest,
         current_user: models.User = Depends(get_current_user),
