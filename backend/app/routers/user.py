@@ -26,7 +26,7 @@ async def get_user(
     completed_hypotheses = db.query(models.Hypothesis).filter(
         and_(
             models.Hypothesis.user_id == current_user.id,
-            models.Hypothesis.status == 'completed'
+            models.Hypothesis.status == 'closed'
         )
     ).all()
 
