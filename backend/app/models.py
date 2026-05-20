@@ -46,7 +46,7 @@ class Position(Base):
     ticker = Column(String, nullable=False)
     direction = Column(String, nullable=False)  # up или down
     quantity = Column(Integer, nullable=False)
-    duration = Column(Integer, nullable=False)  # в минутах
+    duration = Column(Integer, nullable=False)  # в днях
     price_open = Column(Numeric(15, 2), nullable=False)
     price_close = Column(Numeric(15, 2), nullable=True)
     result = Column(Numeric(15, 2), nullable=True)

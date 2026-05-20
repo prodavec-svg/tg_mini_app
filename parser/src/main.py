@@ -242,11 +242,15 @@ class HypothesisSettler:
                     result = (price_close - price_open_f) * quantity
                 else:  # "down"
                     result = (price_open_f - price_close) * quantity
+                
+                # Считаем сумму к возврату (изначальная инвестиция + профит/убыток)
+                initial_investment = price_open_f * quantity
+                amount_to_return = initial_investment + result
 
                 logger.info(
-                    "Гипотеза %d | %s | %s | open=%.2f close=%.2f qty=%d → result=%.2f",
+                    "Гипотеза %d | %s | %s | open=%.2f close=%.2f qty=%d → result=%.2f, return=%.2f",
                     hypothesis_id, ticker, direction,
-                    price_open_f, price_close, quantity, result
+                    price_open_f, price_close, quantity, result, amount_to_return
                 )
 
                 with conn.cursor() as cur:
@@ -271,7 +275,7 @@ class HypothesisSettler:
                         UPDATE users
                         SET balance = balance + %s
                         WHERE id = %s
-                    """, (result, user_id))
+                    """, (amount_to_return, user_id))
 
             conn.commit()
             logger.info("Все завершённые гипотезы обработаны и закрыты")
