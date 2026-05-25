@@ -3,13 +3,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import assets, user, hypotheses, prices
 
+from app.config import settings
+
 app = FastAPI(
     title="Trading Simulator API",
     description="Telegram Mini App Trading Simulator",
     version="1.0.0"
 )
 
-origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 
 app.add_middleware(
     CORSMiddleware,
